@@ -771,7 +771,7 @@ export default function MemberForm({
                       <label className="block text-sm font-semibold text-stone-700 mb-2">
                         Nơi an táng
                       </label>
-                      <div className="grid grid-cols-3 gap-3">
+                      <div>
                         <input
                           type="text"
                           placeholder="Nơi an táng"
