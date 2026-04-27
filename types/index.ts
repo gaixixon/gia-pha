@@ -33,6 +33,7 @@ export interface Person {
   death_day: number | null;
   avatar_url: string | null;
   note: string | null;
+  last_location: string | null;
   created_at: string;
   updated_at: string;
 
