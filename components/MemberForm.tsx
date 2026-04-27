@@ -96,7 +96,7 @@ export default function MemberForm({
   );
 
   const [note, setNote] = useState(initialData?.note || "");
-
+  const [rest_location, setRest_location] = useState(initialData?.rest_location || "");
   // Private fields
   const [phoneNumber, setPhoneNumber] = useState(
     initialData?.phone_number ?? "",
@@ -326,6 +326,7 @@ export default function MemberForm({
         other_names: otherNames || null,
         avatar_url: url,
         note: note || null,
+        rest_location: rest_location || null
       });
 
       let currentPersonId = initialData?.id;
@@ -765,6 +766,26 @@ export default function MemberForm({
                   </p>
 
                   <div className="flex flex-col gap-5">
+                    {/* Rest location of the deceased */}
+                    <div>
+                      <label className="block text-sm font-semibold text-stone-700 mb-2">
+                        Nơi an táng
+                      </label>
+                      <div className="grid grid-cols-3 gap-3">
+                        <input
+                          type="text"
+                          placeholder="Nơi an táng"
+                          value= ${rest_location}
+                          }
+                          onChange={(e) =>
+                            setRest_location(e.target.value)
+                          }
+                          className={inputClasses}
+                        />
+                       </div>
+                    </div>
+                    {/* end of rest_location */}
+                    
                     {/* Lunar Date */}
                     <div>
                       <label className="block text-sm font-semibold text-stone-700 mb-2">
