@@ -18,7 +18,8 @@ export default function Footer({
             hơn.
           </p>
         )}
-        <p className="flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity">
+        <!--------
+          <p className="flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity">
           <a
             href="https://github.com/homielab/giapha-os"
             target="_blank"
@@ -48,7 +49,7 @@ export default function Footer({
           >
             HomieLab
           </a>
-        </p>
+        </p> -------->
       </div>
     </footer>
   );
