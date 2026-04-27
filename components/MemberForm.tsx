@@ -776,7 +776,6 @@ export default function MemberForm({
                           type="text"
                           placeholder="Nơi an táng"
                           value= {rest_location}
-                          }
                           onChange={(e) =>
                             setRest_location(e.target.value)
                           }
