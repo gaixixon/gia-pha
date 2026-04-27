@@ -767,6 +767,7 @@ export default function MemberForm({
 
                   <div className="flex flex-col gap-5">
                     {/* Rest location of the deceased */}
+                    <input type="text" placeholder="aaa" value="foo"/>
                     <div>
                       <label className="block text-sm font-semibold text-stone-700 mb-2">
                         Nơi an táng
