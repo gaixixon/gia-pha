@@ -433,10 +433,10 @@ export default function AdminUserList({
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-stone-700 mb-1">
-                    Email <span className="text-red-500">*</span>
+                    UserID <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="email"
+                    type="text"
                     name="email"
                     required
                     className="w-full px-3 py-2 sm:py-2.5 bg-white text-stone-900 placeholder-stone-400 border border-stone-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition-colors"
