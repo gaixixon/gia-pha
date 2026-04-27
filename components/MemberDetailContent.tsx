@@ -330,6 +330,41 @@ export default function MemberDetailContent({
                 </motion.div>
               )}
 
+              {/* rest_location Card */}
+              { isDeceased && (
+                <motion.div
+                  variants={itemVariants}
+                  className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-stone-200/60 shadow-sm transition-all hover:shadow-md hover:border-amber-200/60"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="size-2 rounded-full bg-stone-400 shadow-[0_0_8px_rgba(156,163,175,0.5)]"></span>
+                    <h3 className="text-[11px] font-bold text-stone-400 uppercase tracking-widest">
+                      Nơi an nghỉ
+                    </h3>
+                  </div>
+                  <div className="space-y-1.5 pl-4 border-l-2 border-stone-100">
+                    <p className="text-stone-800 font-semibold text-sm sm:text-base">
+                       {person.rest_location ? person.rest_location : "Chưa rõ"}
+                    </p>
+                    <p className="text-stone-800 font-semibold text-sm sm:text-base">
+                      {person.gps_location ? (
+                        <a
+                          href={`https://www.google.com/maps?q=${person.gps_location}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          Xem trên Google Maps
+                        </a>
+                      ) : (
+                        ""
+                      )}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+              {/* end for rest_location */}
+
               {/* Age Card */}
               {(() => {
                 const ageData = calculateAge(
@@ -368,10 +403,11 @@ export default function MemberDetailContent({
                         </span>
                       </p>
                     </div>
+
                   </motion.div>
                 );
               })()}
-
+ 
               {/* Children Stats Card */}
               {relStats &&
                 (relStats.biologicalChildren > 0 ||
@@ -513,7 +549,7 @@ export default function MemberDetailContent({
             <motion.section layout variants={itemVariants}>
               <h2 className="text-base sm:text-lg font-bold text-stone-800 mb-4 flex items-center gap-2">
                 <Info className="size-5 text-amber-600" />
-                Ghi chú
+                Cuộc đời và Sự nghiệp
               </h2>
               <div className="bg-white/80 backdrop-blur-sm p-5 sm:p-6 rounded-2xl border border-stone-200/60 shadow-sm relative overflow-hidden">
                 {note ? (
@@ -560,7 +596,7 @@ export default function MemberDetailContent({
                   </div>
                 ) : (
                   <p className="text-stone-400 italic text-sm sm:text-base">
-                    Chưa có ghi chú.
+                    Chưa có thông tin.
                   </p>
                 )}
               </div>

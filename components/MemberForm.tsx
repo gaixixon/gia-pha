@@ -97,6 +97,7 @@ export default function MemberForm({
 
   const [note, setNote] = useState(initialData?.note || "");
   const [rest_location, setRest_location] = useState(initialData?.rest_location || "");
+  const [gps_location, setGps_location] = useState(initialData?.gps_location || "");
   // Private fields
   const [phoneNumber, setPhoneNumber] = useState(
     initialData?.phone_number ?? "",
@@ -326,7 +327,8 @@ export default function MemberForm({
         other_names: otherNames || null,
         avatar_url: url,
         note: note || null,
-        rest_location: rest_location || null
+        rest_location: rest_location || null,
+        gps_location: gps_location || null,
       });
 
       let currentPersonId = initialData?.id;
@@ -767,7 +769,6 @@ export default function MemberForm({
 
                   <div className="flex flex-col gap-5">
                     {/* Rest location of the deceased */}
-                    <input type="text" placeholder="aaa" value="foo"/>
                     <div>
                       <label className="block text-sm font-semibold text-stone-700 mb-2">
                         Nơi an táng
@@ -779,6 +780,22 @@ export default function MemberForm({
                           value= {rest_location}
                           onChange={(e) =>
                             setRest_location(e.target.value)
+                          }
+                          className={inputClasses}
+                        />
+                       </div>
+                    </div>
+                                        <div>
+                      <label className="block text-sm font-semibold text-stone-700 mb-2">
+                        Tọa độ GPS của nơi an táng (nếu có)
+                      </label>
+                      <div>
+                        <input
+                          type="text"
+                          placeholder="Nơi an táng"
+                          value= {gps_location}
+                          onChange={(e) =>
+                            setGps_location(e.target.value)
                           }
                           className={inputClasses}
                         />
@@ -873,13 +890,13 @@ export default function MemberForm({
 
           <div className="md:col-span-2">
             <label className="block text-sm font-semibold text-stone-700 mb-1.5">
-              Ghi chú
+              Cuộc đời & Sự nghiệp
             </label>
             <textarea
               rows={3}
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Thêm thông tin bổ sung, tiểu sử..."
+              placeholder="Thông tin cuộc đời & sự nghiệp..."
               className={`${inputClasses} resize-none`}
             />
           </div>

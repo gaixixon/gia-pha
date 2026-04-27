@@ -33,7 +33,6 @@ export interface Person {
   death_day: number | null;
   avatar_url: string | null;
   note: string | null;
-  last_location: string | null;
   created_at: string;
   updated_at: string;
 
@@ -46,6 +45,8 @@ export interface Person {
   death_lunar_year: number | null;
   death_lunar_month: number | null;
   death_lunar_day: number | null;
+  rest_location: string | null;
+  gps_location: string | null;
 
   // New fields
   is_deceased: boolean;
