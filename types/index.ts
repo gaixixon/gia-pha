@@ -47,6 +47,7 @@ export interface Person {
   death_lunar_day: number | null;
   rest_location: string | null;
   gps_location: string | null;
+  tomb_image_url: string | null;
 
   // New fields
   is_deceased: boolean;

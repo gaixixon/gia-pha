@@ -417,9 +417,25 @@ export default function DashboardMemberList({
                                   initialPersons.find((p) => p.id === id),
                                 )
                                 .filter(Boolean) as Person[];
+                              /*  
                               const parentNames = parents
                                 .map((p) => p.full_name.trim().split(" ").splice(-2).join(" "))
                                 .join(" & ");
+                              */
+                              /* add honorifics to parent names */
+                              const parentNames = parents
+                                .map((p) => {
+                                  const fullName = p.full_name?.trim() || "";
+
+                                  let prefix = "";
+                                  if (p.gender === "male") prefix = "Ông ";
+                                  else if (p.gender === "female") prefix = "Bà ";
+
+                                  return prefix + fullName;
+                                })
+                                .join(" & ");
+
+
 
                               const label = parentNames
                                 ? `Con của: ${parentNames}`

@@ -95,6 +95,17 @@ export default function MemberForm({
     initialData?.avatar_url || null,
   );
 
+  /* tomb image */
+  const [tombImageUrl, setTombImageUrl] = useState(
+    initialData?.tomb_image_url || ""
+  );
+  const [tombImagePreview, setTombImagePreview] = useState(
+    initialData?.tomb_image_url || ""
+  );
+  const [tombImageFile, setTombImageFile] = useState<File | null>(null);
+  const [tombLoading, setTombLoading] = useState(false);
+  /* tomb image end */
+
   const [note, setNote] = useState(initialData?.note || "");
   const [rest_location, setRest_location] = useState(initialData?.rest_location || "");
   const [gps_location, setGps_location] = useState(initialData?.gps_location || "");
@@ -329,6 +340,7 @@ export default function MemberForm({
         note: note || null,
         rest_location: rest_location || null,
         gps_location: gps_location || null,
+        tomb_image_url: tombImageUrl || null,
       });
 
       let currentPersonId = initialData?.id;
@@ -378,6 +390,18 @@ export default function MemberForm({
         if (updateAvatarError) throw updateAvatarError;
       }
 
+      // Upload tomb image AFTER we have personId
+      if (tombImageFile && currentPersonId) {
+        const url = await uploadTombImage(tombImageFile, currentPersonId);
+
+        const { error: tombError } = await supabase
+          .from("persons")
+          .update({ tomb_image_url: url })
+          .eq("id", currentPersonId);
+
+        if (tombError) throw tombError;
+      }
+
       // 3. Upsert private data (only if admin and currentPersonId exists)
       if (isAdmin && currentPersonId) {
         const normalizedData = {
@@ -424,6 +448,7 @@ export default function MemberForm({
     }
   };
 
+
   const formSectionVariants: Variants = {
     hidden: { opacity: 0, y: 10 },
     show: {
@@ -436,6 +461,115 @@ export default function MemberForm({
   const inputClasses =
     "bg-white text-stone-900 placeholder-stone-500 block w-full rounded-xl border border-stone-300 shadow-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 focus:bg-white text-sm px-4 py-3 transition-all outline-none!";
 
+  /* tomb image upload handlers */
+  const compressImage = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      if (!e.target?.result) return reject("Read error");
+      img.src = e.target.result as string;
+    };
+
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const targetWidth = 600;
+      const targetHeight = 400;
+
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+
+      const scale = Math.max(
+        targetWidth / img.width,
+        targetHeight / img.height
+      );
+
+      const x = (targetWidth - img.width * scale) / 2;
+      const y = (targetHeight - img.height * scale) / 2;
+
+      ctx?.drawImage(
+        img,
+        0,
+        0,
+        img.width,
+        img.height,
+        x,
+        y,
+        img.width * scale,
+        img.height * scale
+      );
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return reject("Compress failed");
+          resolve(new File([blob], "tomb.jpg", { type: "image/jpeg" }));
+        },
+        "image/jpeg",
+        0.8
+      );
+    };
+
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const uploadTombImage = async (file: File, personId: string) => {
+    const fileName = `tomb_${personId}.jpg`;
+
+    const { error } = await supabase.storage
+      .from("tomb-images")
+      .upload(fileName, file, { upsert: true });
+
+    if (error) {
+      console.error("UPLOAD ERROR:", error);
+      throw error;
+    }
+
+    const { data } = supabase.storage
+      .from("tomb-images")
+      .getPublicUrl(fileName);
+
+    return `${data.publicUrl}?t=${Date.now()}`;
+  };
+
+  const handleTombChange = async (file: File) => {
+    try {
+      setTombLoading(true);
+
+      const compressed = await compressImage(file);
+
+      // ONLY preview, DO NOT upload here
+      setTombImagePreview(URL.createObjectURL(compressed));
+      setTombImageFile(compressed);
+
+    } catch (err) {
+      console.error("Tomb image error:", err);
+    } finally {
+      setTombLoading(false);
+    }
+  };
+
+
+  const handleTombDelete = async () => {
+    try {
+      if (tombImageUrl) {
+        const fileName = tombImageUrl.split("/").pop()?.split("?")[0];
+        if (fileName) {
+          await supabase.storage.from("tomb-images").remove([fileName]);
+        }
+      }
+
+      setTombImageUrl("");
+      setTombImagePreview("");
+      setTombImageFile(null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  /* tomb image upload handlers end */  
   return (
     <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
       <motion.div
@@ -785,7 +919,7 @@ export default function MemberForm({
                         />
                        </div>
                     </div>
-                                        <div>
+                    <div>
                       <label className="block text-sm font-semibold text-stone-700 mb-2">
                         Tọa độ GPS của nơi an táng (nếu có)
                       </label>
@@ -801,6 +935,75 @@ export default function MemberForm({
                         />
                        </div>
                     </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-stone-700 mb-2">
+                        Ảnh mộ phần
+                      </label>
+
+                      <div className="flex flex-col sm:flex-row gap-4">
+
+                        {/* PREVIEW */}
+                        <div className="w-40 h-28 bg-stone-200 rounded-lg overflow-hidden flex items-center justify-center">
+                          {tombImagePreview ? (
+                            <img
+                              src={tombImagePreview}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-xs text-stone-500">Chưa có ảnh</span>
+                          )}
+                        </div>
+
+                        {/* BUTTONS */}
+                        <div className="flex flex-wrap items-center gap-3">
+
+                          {/* VIEW */}
+                          <button
+                            type="button"
+                            disabled={!tombImagePreview}
+                            onClick={() => window.open(tombImagePreview, "_blank")}
+                            className="px-4 py-2 text-sm rounded-lg border bg-stone-50 hover:bg-stone-100 disabled:opacity-50"
+                          >
+                            Xem ảnh
+                          </button>
+
+                          {/* CHANGE */}
+                          <div className="relative">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleTombChange(file);
+                              }}
+                            />
+                            <button
+                              type="button"
+                              className="px-4 py-2 text-sm rounded-lg bg-amber-50 text-amber-700 border hover:bg-amber-100"
+                            >
+                              {tombLoading ? "Đang xử lý..." : "Đổi ảnh"}
+                            </button>
+                          </div>
+
+                          {/* DELETE */}
+                          <button
+                            type="button"
+                            disabled={!tombImagePreview}
+                            onClick={handleTombDelete}
+                            className="px-4 py-2 text-sm rounded-lg bg-rose-50 text-rose-600 border hover:bg-rose-100 disabled:opacity-50"
+                          >
+                            Xóa ảnh
+                          </button>
+
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-stone-500 mt-2">
+                        Ảnh sẽ được nén về 600x400 trước khi tải lên.
+                      </p>
+                    </div>
+                
                     {/* end of rest_location */}
                     
                     {/* Lunar Date */}
