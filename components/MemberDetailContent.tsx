@@ -363,7 +363,7 @@ export default function MemberDetailContent({
                       {person.tomb_image_url ? (
                           <button
                             type="button"
-                            onClick={() => window.open(person.tomb_image_url, "_blank")}
+                            onClick={() =>  person.tomb_image_url && window.open(person.tomb_image_url, "_blank")}
                             className="px-4 py-2 text-sm rounded-lg border bg-stone-50 hover:bg-stone-100 disabled:opacity-50"
                           >
                             Xem ảnh
