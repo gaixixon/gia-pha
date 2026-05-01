@@ -71,6 +71,9 @@ CREATE TABLE IF NOT EXISTS public.persons (
   death_lunar_day INT,
   
   is_deceased BOOLEAN NOT NULL DEFAULT FALSE,
+  rest_location TEXT,
+  gps_location TEXT,
+  tomb_image_url TEXT,
   is_in_law BOOLEAN NOT NULL DEFAULT FALSE,
   birth_order INT,
   generation INT,
@@ -333,6 +336,23 @@ CREATE POLICY "Users can update avatars." ON storage.objects FOR UPDATE USING ( 
 
 DROP POLICY IF EXISTS "Users can delete avatars." ON storage.objects;
 CREATE POLICY "Users can delete avatars." ON storage.objects FOR DELETE USING ( bucket_id = 'avatars' AND auth.role() = 'authenticated' );
+
+-- Initialize 'tomb-images' bucket
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('tomb-images', 'tomb-images', true) 
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+DROP POLICY IF EXISTS "Tobm images are publicly accessible." ON storage.objects;
+CREATE POLICY "Tomb images are publicly accessible." ON storage.objects FOR SELECT USING ( bucket_id = 'tomb-images' );
+
+DROP POLICY IF EXISTS "Users can upload tomb images." ON storage.objects;
+CREATE POLICY "Users can upload tomb images." ON storage.objects FOR INSERT WITH CHECK ( bucket_id = 'tomb-images' AND auth.role() = 'authenticated' );
+
+DROP POLICY IF EXISTS "Users can update tomb imagess." ON storage.objects;
+CREATE POLICY "Users can update avatars." ON storage.objects FOR UPDATE USING ( bucket_id = 'tomb-images' AND auth.role() = 'authenticated' );
+
+DROP POLICY IF EXISTS "Users can delete tomb images." ON storage.objects;
+CREATE POLICY "Users can delete avatars." ON storage.objects FOR DELETE USING ( bucket_id = 'tomb-images' AND auth.role() = 'authenticated' );
 
 -- ==========================================
 -- ADMIN RPC FUNCTIONS
