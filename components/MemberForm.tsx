@@ -109,6 +109,7 @@ export default function MemberForm({
   const [note, setNote] = useState(initialData?.note || "");
   const [rest_location, setRest_location] = useState(initialData?.rest_location || "");
   const [gps_location, setGps_location] = useState(initialData?.gps_location || "");
+
   // Private fields
   const [phoneNumber, setPhoneNumber] = useState(
     initialData?.phone_number ?? "",
@@ -340,7 +341,6 @@ export default function MemberForm({
         note: note || null,
         rest_location: rest_location || null,
         gps_location: gps_location || null,
-        tomb_image_url: tombImageUrl || null,
       });
 
       let currentPersonId = initialData?.id;
@@ -390,18 +390,6 @@ export default function MemberForm({
         if (updateAvatarError) throw updateAvatarError;
       }
 
-      // Upload tomb image AFTER we have personId
-      if (tombImageFile && currentPersonId) {
-        const url = await uploadTombImage(tombImageFile, currentPersonId);
-
-        const { error: tombError } = await supabase
-          .from("persons")
-          .update({ tomb_image_url: url })
-          .eq("id", currentPersonId);
-
-        if (tombError) throw tombError;
-      }
-
       // 3. Upsert private data (only if admin and currentPersonId exists)
       if (isAdmin && currentPersonId) {
         const normalizedData = {
@@ -447,7 +435,6 @@ export default function MemberForm({
       setLoading(false);
     }
   };
-
 
   const formSectionVariants: Variants = {
     hidden: { opacity: 0, y: 10 },
@@ -516,17 +503,14 @@ export default function MemberForm({
     });
   };
 
-  const uploadTombImage = async (file: File, personId: string) => {
-    const fileName = `tomb_${personId}.jpg`;
+  const uploadTombImage = async (file: File) => {
+  const fileName = `tomb_${initialData?.id}.jpg`;
 
-    const { error } = await supabase.storage
-      .from("tomb-images")
-      .upload(fileName, file, { upsert: true });
+  const { error } = await supabase.storage
+    .from("tomb-images")
+    .upload(fileName, file, { upsert: true }); // important
 
-    if (error) {
-      console.error("UPLOAD ERROR:", error);
-      throw error;
-    }
+    if (error) throw error;
 
     const { data } = supabase.storage
       .from("tomb-images")
@@ -535,16 +519,29 @@ export default function MemberForm({
     return `${data.publicUrl}?t=${Date.now()}`;
   };
 
+
   const handleTombChange = async (file: File) => {
     try {
       setTombLoading(true);
 
       const compressed = await compressImage(file);
 
-      // ONLY preview, DO NOT upload here
+      // preview first
       setTombImagePreview(URL.createObjectURL(compressed));
-      setTombImageFile(compressed);
 
+      // delete old
+      if (tombImageUrl) {
+        const oldFile = tombImageUrl.split("/").pop();
+        if (oldFile) {
+          await supabase.storage.from("tomb-images").remove([oldFile]);
+        }
+      }
+
+      // upload new
+      const url = await uploadTombImage(compressed);
+
+      setTombImageUrl(url);
+      setTombImageFile(compressed);
     } catch (err) {
       console.error("Tomb image error:", err);
     } finally {
@@ -552,11 +549,10 @@ export default function MemberForm({
     }
   };
 
-
   const handleTombDelete = async () => {
     try {
       if (tombImageUrl) {
-        const fileName = tombImageUrl.split("/").pop()?.split("?")[0];
+        const fileName = tombImageUrl.split("/").pop();
         if (fileName) {
           await supabase.storage.from("tomb-images").remove([fileName]);
         }
@@ -570,6 +566,38 @@ export default function MemberForm({
     }
   };
   /* tomb image upload handlers end */  
+  /* auto get current gps */
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const handleGpsFocus = () => {
+    // chỉ lấy khi chưa có giá trị
+    if (gps_location) return;
+    setGpsLoading(true);
+    if (!navigator.geolocation) {
+      console.warn("Geolocation not supported");
+      setGpsLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        // format tùy bạn
+        setGps_location(`${lat}, ${lng}`);
+        setGpsLoading(false);
+      },
+      (err) => {
+        console.error("GPS error:", err);
+        setGpsLoading(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 5000,
+      }
+    );
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
       <motion.div
@@ -926,13 +954,19 @@ export default function MemberForm({
                       <div>
                         <input
                           type="text"
-                          placeholder="Nơi an táng"
+                          placeholder="Click để lấy tọa độ GPS"
                           value= {gps_location}
                           onChange={(e) =>
                             setGps_location(e.target.value)
                           }
+                          onFocus={handleGpsFocus}
                           className={inputClasses}
                         />
+                        {gpsLoading && (
+                          <p className="text-xs text-amber-600 mt-1">
+                            📍 Đang lấy vị trí...
+                          </p>
+                        )}
                        </div>
                     </div>
                     <div>

@@ -345,8 +345,6 @@ export default function MemberDetailContent({
                   <div className="space-y-1.5 pl-4 border-l-2 border-stone-100">
                     <p className="text-stone-800 font-semibold text-sm sm:text-base">
                        {person.rest_location ? person.rest_location : "Chưa rõ"}
-                    </p>
-                    <p className="text-stone-800 font-semibold text-sm sm:text-base">
                       {person.gps_location ? (
                         <a
                           href={`https://www.google.com/maps?q=${person.gps_location}`}
@@ -354,8 +352,22 @@ export default function MemberDetailContent({
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:underline"
                         >
-                          Xem trên Google Maps
+                          📍
                         </a>
+                      ) : (
+                        ""
+                      )}
+
+                    </p>
+                    <p className="text-stone-800 font-semibold text-sm sm:text-base">
+                      {person.tomb_image_url ? (
+                          <button
+                            type="button"
+                            onClick={() => window.open(person.tomb_image_url, "_blank")}
+                            className="px-4 py-2 text-sm rounded-lg border bg-stone-50 hover:bg-stone-100 disabled:opacity-50"
+                          >
+                            Xem ảnh
+                          </button>
                       ) : (
                         ""
                       )}
